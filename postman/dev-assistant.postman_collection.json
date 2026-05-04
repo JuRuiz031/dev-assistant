@@ -1,0 +1,274 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "Dev Assistant API",
+		"description": "Testing collection for the Spring AI Dev Assistant",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/actuator/health",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["actuator", "health"]
+				},
+				"description": "Verify app is running and all components are UP"
+			},
+			"response": []
+		},
+		{
+			"name": "1. Basic LLM Call",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"Say hello and tell me what you are in one sentence.\",\n    \"conversationId\": \"test-001\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chat",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat"]
+				},
+				"description": "Basic call — verify ChatClient connects to Ollama and responds"
+			},
+			"response": []
+		},
+		{
+			"name": "2. Memory Test - First Message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"My name is Juan and I use Spring Boot and Angular.\",\n    \"conversationId\": \"test-memory-001\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chat",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat"]
+				},
+				"description": "Send first message to establish memory"
+			},
+			"response": []
+		},
+		{
+			"name": "3. Memory Test - Second Message",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"What is my name and what frameworks did I mention?\",\n    \"conversationId\": \"test-memory-001\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chat",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat"]
+				},
+				"description": "Should mention Juan, Spring Boot, and Angular"
+			},
+			"response": []
+		},
+		{
+			"name": "4. Tool Test - listDirectory",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"What files are in /tmp?\",\n    \"conversationId\": \"test-tools-001\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chat",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat"]
+				},
+				"description": "Should trigger listDirectory — check logs for [TOOL] listDirectory(/tmp)"
+			},
+			"response": []
+		},
+		{
+			"name": "5. Tool Test - readFile",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"Read the pom.xml at /home/juanf/ProgrammingProjects/pre_IBM_projects/dev-assistant/pom.xml and tell me what dependencies are included\",\n    \"conversationId\": \"test-tools-001\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chat",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat"]
+				},
+				"description": "Should trigger readFile — check logs for [TOOL] readFile(...)"
+			},
+			"response": []
+		},
+		{
+			"name": "6. Tool Test - Multi-hop",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"What is the main application class in /home/juanf/ProgrammingProjects/pre_IBM_projects/dev-assistant?\",\n    \"conversationId\": \"test-tools-002\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chat",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat"]
+				},
+				"description": "Should call TWO tools — check logs for two [TOOL] lines"
+			},
+			"response": []
+		},
+		{
+			"name": "7. Tool Test - gitLog",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"Show me the last 5 commits in /home/juanf/ProgrammingProjects/pre_IBM_projects/dev-assistant\",\n    \"conversationId\": \"test-git-001\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chat",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat"]
+				},
+				"description": "Should trigger gitLog — check logs for [TOOL] gitLog(...)"
+			},
+			"response": []
+		},
+		{
+			"name": "8. Tool Test - gitStatus",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"Are there any uncommitted changes in /home/juanf/ProgrammingProjects/pre_IBM_projects/dev-assistant?\",\n    \"conversationId\": \"test-git-001\"\n}",
+					"options": { "raw": { "language": "json" } }
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/chat",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat"]
+				},
+				"description": "Should trigger gitStatus or gitDiff"
+			},
+			"response": []
+		},
+		{
+			"name": "9. Get History",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/chat/test-memory-001/history",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat", "test-memory-001", "history"]
+				},
+				"description": "Returns all messages for test-memory-001"
+			},
+			"response": []
+		},
+		{
+			"name": "10. Delete - Real Conversation",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/chat/test-memory-001",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat", "test-memory-001"]
+				},
+				"description": "Should return 204 No Content"
+			},
+			"response": []
+		},
+		{
+			"name": "11. Delete - Fake Conversation",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/chat/fake-id-that-doesnt-exist",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat", "fake-id-that-doesnt-exist"]
+				},
+				"description": "Should return 404 Not Found"
+			},
+			"response": []
+		},
+		{
+			"name": "12. Verify History Cleared",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/chat/test-memory-001/history",
+					"protocol": "http",
+					"host": ["localhost"],
+					"port": "8080",
+					"path": ["api", "chat", "test-memory-001", "history"]
+				},
+				"description": "Should return empty list [] after deletion in test 10"
+			},
+			"response": []
+		}
+	]
+}

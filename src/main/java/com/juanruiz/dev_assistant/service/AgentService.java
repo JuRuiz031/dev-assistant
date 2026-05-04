@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 @Service
 @RequiredArgsConstructor
@@ -66,4 +67,20 @@ public class AgentService {
         log.info("Memory cleared for conversationId: {}", conversationId);
         return true;
     }
+
+    public Flux<String> stream(String message, String conversationId) {
+        Objects.requireNonNull(message, "Message must not be null");
+        Objects.requireNonNull(conversationId, "ConversationId must not be null");
+        return chatClient.prompt()
+            .user(message)
+            .advisors(MessageChatMemoryAdvisor.builder(chatMemory)
+                .conversationId(conversationId)
+                .build())
+            .stream()
+            .content()
+            .doOnSubscribe(s -> log.info("Stream started: {}", conversationId))
+            .doOnComplete(() -> log.info("Stream complete: {}", conversationId))
+            .doOnError(e -> log.error("Stream error [{}]: {}", conversationId, e.getMessage()));
+    }
+
 }

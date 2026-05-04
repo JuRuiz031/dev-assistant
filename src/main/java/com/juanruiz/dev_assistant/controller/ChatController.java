@@ -3,6 +3,7 @@ package com.juanruiz.dev_assistant.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.juanruiz.dev_assistant.model.ChatRequest;
@@ -19,6 +21,7 @@ import com.juanruiz.dev_assistant.service.AgentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 @RestController
 @Slf4j
@@ -52,9 +55,14 @@ public class ChatController {
             log.info("Conversation cleared successfully: {}", conversationId);
             return ResponseEntity.noContent().build();
         } else {
-            log.warn("Covnersation not found: {}", conversationId);
+            log.warn("Conversation not found: {}", conversationId);
             return ResponseEntity.notFound().build();
         }
     }
     
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> stream(@RequestParam String message, @RequestParam String conversationId) {
+        log.info("GET /api/chat/stream  conversationId={}", conversationId);
+        return agentService.stream(message, conversationId);
+    }
 }

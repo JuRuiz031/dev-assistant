@@ -1,297 +1,138 @@
 # CLI Dev Assistant — Alpha
 
-A lightweight agentic developer assistant that runs entirely on your local machine. Powered by Spring AI and Ollama, it connects a local LLM to your filesystem and git history — giving it the ability to read your actual project files, understand your codebase, and answer questions grounded in reality rather than guesswork.
+A lightweight agentic developer assistant running entirely on your local machine. Powered by Spring AI and Ollama — it reads your actual project files, navigates your codebase, and answers questions grounded in reality rather than training data.
 
-Built to run with Ollama out of the box, but designed to swap to any LLM provider (Claude, OpenAI, Gemini) with minimal configuration changes.
+Built for Ollama out of the box. Other model providers need dependency and config changes.
 
 ---
 
 ## What it can do
 
-- Read and analyze files in any project directory
-- List directory structures and navigate your codebase
-- Search for files by name or pattern across a project
+- List and navigate your project structure
+- Read source code, config files, and READMEs
+- Search for files by name or pattern
 - Read git history, status, and diffs
-- Remember the full context of your conversation
-- Stream responses token by token as they're generated
-- Maintain multiple independent conversations simultaneously
-
----
-
-## How it works
-
-```
-You (CLI) → Spring Boot REST API → Spring AI → Ollama (local LLM)
-                                       ↓
-                              FileSystemTools
-                              GitTools
-                              ChatMemory
-```
-
-The CLI sends your messages to the Spring Boot backend. The backend passes them to the LLM along with a set of registered tools. The LLM decides which tools to call, Spring AI executes them, and the results feed back into the response.
+- Remember your full conversation context
+- Stream responses token by token
 
 ---
 
 ## Prerequisites
 
-### Everyone
-- **Git** — to clone this repo
-- **Java 21** — required to run the Spring Boot backend
-- **Python 3** — required to run the CLI
-- **Ollama** — the local LLM runtime
+- Java 21
+- Python 3
+- Ollama — https://ollama.com/download
 
-### Installing Java 21
+**Install Java 21:**
 
-**Windows:**
-1. Go to https://adoptium.net
-2. Download the Java 21 installer for Windows
-3. Run the installer (next → next → finish)
-4. Verify: open Command Prompt and run `java --version` — should show 21.x
+Windows: download from https://adoptium.net and run the installer.
 
-**Linux:**
+Linux:
 ```bash
-sudo apt update
 sudo apt install openjdk-21-jdk
-java --version
-```
-
-### Installing Python 3
-
-**Windows:**
-1. Go to https://www.python.org/downloads/
-2. Download the latest Python 3.x installer
-3. Run it — **check "Add Python to PATH"** before clicking Install
-4. Verify: open Command Prompt and run `python --version`
-
-**Linux:**
-```bash
-sudo apt update
-sudo apt install python3 python3-pip
-python3 --version
-```
-
-### Installing Ollama
-
-**Windows:**
-1. Go to https://ollama.com/download
-2. Download the Windows installer
-3. Run it
-4. Ollama starts automatically as a background service
-
-**Linux:**
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
 ```
 
 ---
 
 ## Setup
 
-### 1. Clone the repository
-
 ```bash
 git clone https://github.com/JuRuiz031/dev-assistant.git
 cd dev-assistant
 ```
 
-### 2. Pull the LLM model
-
-This project uses `llama3.1` by default. Pull it with:
-
+Pull the model (Select ONE, depends on how much vram you are able to use. 14b is 9gb vram, 32b is way more. Mistral is a few GB):
 ```bash
-ollama pull llama3.1
+ollama pull qwen2.5:14b
+ollama pull qwen2.5:32b
+ollama pull mistral
 ```
 
-This is a ~4.7GB download. Get a coffee.
-
-### 3. Install Python dependencies
-
+Install the Python dependency:
 ```bash
 pip install requests
 ```
 
-**Windows:**
-```
-pip install requests
-```
-
-### 4. Configure your project path (optional)
-
-Open `src/main/resources/prompts/system.st` and update the project path to point to whatever codebase you want the assistant to work with:
-
+**Set your project path** — open `src/main/resources/prompts/system.st` and update:
 ```
 Project root: /path/to/your/project
+Java source root: /path/to/your/project/src/main/java/com/yourpackage
 ```
 
 ---
 
-## Running the app
+## Running
 
-You need two things running simultaneously: the Spring Boot backend and the CLI.
+You need two terminals.
 
-### Step 1 — Start the backend
+**Terminal 1 — start the backend:**
 
-**Linux:**
+Linux:
 ```bash
 ./mvnw spring-boot:run
 ```
-
-**Windows:**
+Windows:
 ```
 mvnw.cmd spring-boot:run
 ```
 
-Wait until you see:
-```
-Started DevAssistantApplication in X seconds
-```
+Wait for `Started DevAssistantApplication`.
 
-The backend is now running on port 8080.
+**Terminal 2 — start the CLI:**
 
-### Step 2 — Start the CLI (in a new terminal)
-
-**Linux / Mac:**
+Linux:
 ```bash
 python3 cli.py
 ```
-
-**Windows:**
+Windows:
 ```
 python cli.py
 ```
 
 ---
 
-## Using the CLI
+## CLI commands
 
-```
-Dev Assistant CLI — type 'quit' to exit, 'new' for new conversation
-
-You: what files are in my project?
-Assistant: [lists your actual project files]
-
-You: read the pom.xml
-Assistant: [reads and explains your actual pom.xml]
-
-You: show me the last 5 commits
-Assistant: [shows real git history]
-
-You: new
-New conversation started.
-
-You: quit
-Bye!
-```
-
-### Commands
 | Command | Description |
 |---------|-------------|
-| `new` | Start a fresh conversation (clears context) |
-| `quit` | Exit the CLI |
-| Any other text | Send a message to the assistant |
+| `new` | Start a fresh conversation |
+| `clear` | Clear current conversation history |
+| `history` | Show the current conversation ID |
+| `quit` | Exit |
+| anything else | Send a message to the assistant |
 
 ---
 
 ## Switching to a different LLM
 
-The backend is built with Spring AI's provider abstraction. Swapping models requires two small changes:
+This repo is wired for the OpenAI-compatible Spring AI starter pointed at Ollama. If you want Anthropic or another provider, you will need to add the matching Spring AI dependency and update the `spring.ai` configuration.
 
-### Claude (Anthropic)
-
-**pom.xml** — replace the OpenAI starter:
-```xml
-<artifactId>spring-ai-starter-model-anthropic</artifactId>
-```
-
-**application.yml** — replace the AI config block:
-```yaml
-spring:
-  ai:
-    anthropic:
-      api-key: ${ANTHROPIC_API_KEY}
-      chat:
-        options:
-          model: claude-sonnet-4-20250514
-```
-
-Set your API key as an environment variable:
-```bash
-export ANTHROPIC_API_KEY=your-key-here   # Linux
-set ANTHROPIC_API_KEY=your-key-here      # Windows
-```
-
-### OpenAI (GPT-4o)
-
-**pom.xml** — starter is already `spring-ai-starter-model-openai`
-
-**application.yml:**
-```yaml
-spring:
-  ai:
-    openai:
-      api-key: ${OPENAI_API_KEY}
-      chat:
-        options:
-          model: gpt-4o
-```
-
-No other code changes needed. Your tools, memory, and streaming all work identically regardless of provider.
-
----
-
-## Project structure
-
-```
-dev-assistant/
-├── src/main/java/com/juanruiz/dev_assistant/
-│   ├── config/
-│   │   ├── AiConfig.java          — ChatClient, memory, tools configuration
-│   │   └── WebConfig.java         — CORS configuration
-│   ├── controller/
-│   │   └── ChatController.java    — REST endpoints
-│   ├── service/
-│   │   └── AgentService.java      — LLM interaction, streaming, memory
-│   ├── tools/
-│   │   ├── FileSystemTools.java   — listDirectory, readFile, findFiles
-│   │   └── GitTools.java          — gitLog, gitStatus, gitDiff
-│   └── model/
-│       ├── ChatRequest.java       — Request DTO
-│       └── ChatResponse.java      — Response DTO
-├── src/main/resources/
-│   ├── prompts/system.st          — System prompt (edit this to customize behavior)
-│   └── application.yml            — Configuration
-├── cli.py                         — Python CLI client
-└── pom.xml                        — Maven dependencies
-```
+For example, a Claude setup would require changing both the Maven dependency and the YAML config, then setting the provider API key in your shell.
 
 ---
 
 ## API endpoints
 
-If you want to call the backend directly instead of using the CLI:
-
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/api/chat` | Send a message, get full response |
-| `GET` | `/api/chat/stream` | Send a message, stream response via SSE |
-| `GET` | `/api/chat/{id}/history` | Get conversation history |
-| `DELETE` | `/api/chat/{id}` | Clear a conversation |
+| `POST` | `/api/chat` | Blocking chat |
+| `GET` | `/api/chat/stream` | Streaming chat (SSE) |
+| `GET` | `/api/chat/{id}/history` | Conversation history |
+| `DELETE` | `/api/chat/{id}` | Clear conversation |
 | `GET` | `/actuator/health` | Health check |
 
 ---
 
 ## Known limitations (Alpha)
 
-- Conversation memory is in-memory only — restarting the backend clears all history
-- Tool calling reliability depends on the local model — `llama3.1` works well, smaller models may hallucinate
-- No authentication — don't expose port 8080 publicly without adding security
-- File access is unrestricted — the assistant can read any file the process has permission to
+- Conversation memory is lost on backend restart
+- Tool calling reliability varies by model — Mistral works best locally, Claude works best overall
+- No authentication — do not expose port 8080 publicly
 
 ---
 
 ## Built with
 
-- [Spring Boot 3.5](https://spring.io/projects/spring-boot)
-- [Spring AI 1.0](https://spring.io/projects/spring-ai)
-- [Ollama](https://ollama.com)
-- [Lombok](https://projectlombok.org)
+- Spring Boot 3.5 + Spring AI 1.0
+- Ollama
+- Lombok

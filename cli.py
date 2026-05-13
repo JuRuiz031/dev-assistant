@@ -4,16 +4,25 @@ CLI Dev Assistant — Alpha
 A local agentic developer assistant powered by Spring AI and Ollama.
 """
 
-import requests
-import uuid
+import re
 import sys
+import uuid
+
+import requests
 
 BASE_URL = "http://localhost:8080"
 CONV_ID = str(uuid.uuid4())
 
 
+def clean_token(text: str) -> str:
+    """Strip markdown symbols from a chunk of text."""
+    text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
+    text = re.sub(r'\*(.*?)\*', r'\1', text)
+    text = re.sub(r'`(.*?)`', r'\1', text)
+    return text
+
+
 def stream_message(message: str, conversation_id: str) -> None:
-    """Send a message and stream the response token by token."""
     try:
         with requests.get(
             f"{BASE_URL}/api/chat/stream",
@@ -25,14 +34,16 @@ def stream_message(message: str, conversation_id: str) -> None:
                 print(f"Error: server returned {response.status_code}")
                 return
 
-            print("Assistant: ", end="", flush=True)
+            print("\nAssistant:", flush=True)
+
             for line in response.iter_lines():
                 if line:
                     decoded = line.decode("utf-8")
                     if decoded.startswith("data:"):
-                        token = decoded[5:].strip()
-                        if token:
-                            print(token, end="", flush=True)
+                        token = decoded[5:]
+                        token = clean_token(token)
+                        print(token, end="", flush=True)
+
             print("\n")
 
     except requests.exceptions.ConnectionError:
@@ -49,7 +60,9 @@ def stream_message(message: str, conversation_id: str) -> None:
 def clear_conversation(conversation_id: str) -> None:
     """Clear the current conversation from backend memory."""
     try:
-        response = requests.delete(f"{BASE_URL}/api/chat/{conversation_id}", timeout=10)
+        response = requests.delete(
+            f"{BASE_URL}/api/chat/{conversation_id}", timeout=10
+        )
         if response.status_code == 204:
             print("Conversation cleared.\n")
         elif response.status_code == 404:
@@ -85,7 +98,6 @@ def main():
     print("  CLI Dev Assistant — Alpha")
     print("=" * 50)
 
-    # Check backend is up
     if not check_backend():
         print("\nError: backend is not running.")
         print("Start it first:")
@@ -111,21 +123,16 @@ def main():
         if command == "quit":
             print("Bye!")
             break
-
         elif command == "new":
             clear_conversation(CONV_ID)
             CONV_ID = str(uuid.uuid4())
             print(f"New conversation started. ID: {CONV_ID}\n")
-
         elif command == "clear":
             clear_conversation(CONV_ID)
-
         elif command == "history":
             print(f"Current conversation ID: {CONV_ID}\n")
-
         elif command == "help":
             print_help()
-
         else:
             stream_message(user_input, CONV_ID)
 

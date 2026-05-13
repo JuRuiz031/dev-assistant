@@ -25,5 +25,5 @@ management:
 
 logging:
   level:
-    org.springframework.ai: DEBUG
-    com.juanruiz: DEBUG
+    "[org.springframework.ai]": DEBUG
+    "[com.juanruiz]": DEBUG

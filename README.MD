@@ -89,17 +89,6 @@ python cli.py
 
 ---
 
-## REST API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/chat` | Send a message, get response |
-| GET | `/api/chat/{conversationId}/history` | Get conversation history |
-| DELETE | `/api/chat/{conversationId}` | Clear conversation |
-| GET | `/api/chat/stream` | Stream response (SSE) |
-
----
-
 ## CLI Commands
 
 | Command | Description |
@@ -136,6 +125,7 @@ For example, a Claude setup would require changing both the Maven dependency and
 
 - Conversation memory is lost on backend restart
 - Tool calling reliability varies by model — Mistral works best locally, Claude works best overall
+- Smaller models may hallucinate or respond in a different language (language choice depends on model size)
 - No authentication — do not expose port 8080 publicly
 
 ---

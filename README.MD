@@ -1,18 +1,18 @@
-# CLI Dev Assistant — Alpha
+# Dev Assistant (Alpha)
 
-A lightweight agentic developer assistant running entirely on your local machine. Powered by Spring AI and Ollama — it reads your actual project files, navigates your codebase, and answers questions grounded in reality rather than training data.
+A lightweight agentic developer assistant combining a Spring Boot REST API backend with a Python CLI client. Runs entirely locally, powered by Spring AI and Ollama. Reads your actual project files, navigates your codebase, and grounds responses in reality rather than training data.
 
-Built for Ollama out of the box. Other model providers need dependency and config changes.
+Built for Ollama out of the box.
 
 ---
 
-## What it can do
+## Capabilities
 
-- List and navigate your project structure
-- Read source code, config files, and READMEs
-- Search for files by name or pattern
-- Read git history, status, and diffs
-- Remember your full conversation context
+- Navigate and list project structure
+- Read source code, configs, and documentation
+- Search for files by pattern
+- Access git history, status, and diffs
+- Maintain multi-turn conversation context with memory
 - Stream responses token by token
 
 ---
@@ -21,39 +21,39 @@ Built for Ollama out of the box. Other model providers need dependency and confi
 
 - Java 21
 - Python 3
-- Ollama — https://ollama.com/download
+- Ollama (https://ollama.ai)
 
 **Install Java 21:**
-
-Windows: download from https://adoptium.net and run the installer.
 
 Linux:
 ```bash
 sudo apt install openjdk-21-jdk
 ```
 
+Windows: Download from https://adoptium.net
+
 ---
 
 ## Setup
 
+Clone and configure:
 ```bash
 git clone https://github.com/JuRuiz031/dev-assistant.git
 cd dev-assistant
 ```
 
-Pull the model (Select ONE, depends on how much vram you are able to use. 14b is 9gb vram, 32b is way more. Mistral is a few GB):
+Pull a model (choose one based on available VRAM):
 ```bash
-ollama pull qwen2.5:14b
-ollama pull qwen2.5:32b
-ollama pull mistral
+ollama pull qwen2.5:14b    # ~9GB
+ollama pull mistral        # ~5GB
 ```
 
-Install the Python dependency:
+Install Python dependencies:
 ```bash
 pip install requests
 ```
 
-**Set your project path** — open `src/main/resources/prompts/system.st` and update:
+Update project paths in `src/main/resources/prompts/system.st`:
 ```
 Project root: /path/to/your/project
 Java source root: /path/to/your/project/src/main/java/com/yourpackage
@@ -63,27 +63,25 @@ Java source root: /path/to/your/project/src/main/java/com/yourpackage
 
 ## Running
 
-You need two terminals.
-
-**Terminal 1 — start the backend:**
+**Terminal 1 — Backend (REST API on port 8080):**
 
 Linux:
 ```bash
 ./mvnw spring-boot:run
 ```
+
 Windows:
 ```
 mvnw.cmd spring-boot:run
 ```
 
-Wait for `Started DevAssistantApplication`.
-
-**Terminal 2 — start the CLI:**
+**Terminal 2 — CLI Client:**
 
 Linux:
 ```bash
 python3 cli.py
 ```
+
 Windows:
 ```
 python cli.py
@@ -91,7 +89,18 @@ python cli.py
 
 ---
 
-## CLI commands
+## REST API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/chat` | Send a message, get response |
+| GET | `/api/chat/{conversationId}/history` | Get conversation history |
+| DELETE | `/api/chat/{conversationId}` | Clear conversation |
+| GET | `/api/chat/stream` | Stream response (SSE) |
+
+---
+
+## CLI Commands
 
 | Command | Description |
 |---------|-------------|
